@@ -1,0 +1,1 @@
+D:\유니티\BoardGame\obj\Debug\PhotonUnityNetworking.Demos.csprojAssemblyReference.cache
