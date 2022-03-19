@@ -4,6 +4,7 @@ using System;
 using System.Linq;
 using UnityEngine.UI;
 using System.Collections;
+using UnityEngine.SceneManagement;
 
 public class PlayerScript : MonoBehaviour, IPunObservable
 {
@@ -95,7 +96,13 @@ public class PlayerScript : MonoBehaviour, IPunObservable
             Debug.Log("blockNum : " + blockNum);
             if (blockNum > 42)
             {
+                CreateAndJoinRooms.playerWin++;
+                CreateAndJoinRooms.SetWin();
+
                 view.RPC("Winner", RpcTarget.All, PhotonNetwork.LocalPlayer.NickName);
+                view.RPC("Loser", RpcTarget.Others);
+
+                StartCoroutine(EndGame(5));
             }
             else if (nowPosition.Substring(2, 2).Equals("바닥"))
             {
@@ -106,11 +113,34 @@ public class PlayerScript : MonoBehaviour, IPunObservable
         }
     }
 
+    //게임 종료후 로비로
+    IEnumerator EndGame(float time)
+    {
+        yield return new WaitForSeconds(time);
+        // PhotonNetwork.Disconnect();
+        SceneManager.LoadScene("Lobby");
+        // PhotonNetwork.LoadLevel("Lobby");
+        PhotonNetwork.LeaveRoom();
+
+        // 게임종료 후 씬 넘어가는거 해결하기 >> 포톤네트워크 연결 끊으면서 모두 로비로 보내면서 닉네임 제대로 뜨기 > lose 랑 win 제대로 저장되는지 확인
+    }
+
+    //승자만
     [PunRPC]
     void Winner(string nickName)
     {
         MainUi.idTextStatic.text = nickName;
         MainUi.endUiStatic.SetActive(true);
+    }
+
+    //승자 빼고 모두에게 전달
+    [PunRPC]
+    void Loser()
+    {
+        CreateAndJoinRooms.playerData["PlayerData_Lose"] = (int.Parse(CreateAndJoinRooms.playerData["PlayerData_Lose"]) + 1).ToString();
+        CreateAndJoinRooms.SetUserData(CreateAndJoinRooms.playerData);
+
+        StartCoroutine(EndGame(5));
     }
 
     [PunRPC]
@@ -147,11 +177,6 @@ public class PlayerScript : MonoBehaviour, IPunObservable
                 break;
             case "Thorn":   //가시
                 Blood(1);
-                nowPosition = collision.transform.parent.name;
-                break;
-            case "End":     //목표지점
-                MainUi.idTextStatic.text = CreateAndJoinRooms.nickNameTextStatic.text;
-                MainUi.endUiStatic.SetActive(true);
                 nowPosition = collision.transform.parent.name;
                 break;
             case "Water":   //물

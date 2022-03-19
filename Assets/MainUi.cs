@@ -22,10 +22,11 @@ public class MainUi : MonoBehaviour
     public static TextMeshProUGUI idTextStatic;
     public static GameObject endUiStatic;
     public Button goButton;
-
     public PhotonView PV;
     public static string winner;
     public static string[] Players;
+
+    public CreateAndJoinRooms createAndJoinRooms;
 
     private void Start()
     {
@@ -47,12 +48,14 @@ public class MainUi : MonoBehaviour
         diceUi.GetComponent<Image>().sprite = dice[diceNum - 1];
 
         goButton.interactable = false;
-        PV.RPC("Delay", RpcTarget.All, 1);    //~초 딜레이
+        PV.RPC("Delay", RpcTarget.All, 1f);    //~초 딜레이
     }
 
     public void ClickBackButton()
     {
+        // PhotonNetwork.LoadLevel("Lobby");
         SceneManager.LoadScene("Lobby");
+        PhotonNetwork.LeaveRoom();
     }
 
     IEnumerator Turn(float second)
